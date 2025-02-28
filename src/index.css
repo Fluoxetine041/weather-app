@@ -1,3 +1,12 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* 讓 Tailwind 的 `dark:` 變體能夠影響整個網站 */
+body {
+  @apply bg-gray-100 text-gray-900;
+}
+
+body.dark {
+  @apply bg-[#121212] text-gray-300;
+}

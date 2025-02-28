@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import WeatherCard from "../components/WeatherCard";
 import { getWeatherData } from "../services/weatherAPI";
+import { LanguageContext } from "../context/LanguageContext"; // 加入語言 Context
 
 function Compare() {
+  const { language } = useContext(LanguageContext); // 取得語言設定
   const [cities, setCities] = useState(["臺北市"]); // 預設一個城市
   const [weatherData, setWeatherData] = useState({});
   const [inputCity, setInputCity] = useState("");
@@ -20,7 +22,7 @@ function Compare() {
     };
 
     fetchWeather();
-  }, [cities]); // 當 `cities` 改變時，重新取得天氣資訊
+  }, [cities]); // 當 cities 改變時，重新取得天氣資訊
 
   // 新增城市
   const addCity = () => {
@@ -36,19 +38,24 @@ function Compare() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center bg-gray-100">
-      <h1 className="text-3xl font-bold mb-4">多城市天氣比較</h1>
+    <div className="relative min-h-screen flex flex-col items-center bg-gray-100 dark:bg-gray-900">
+      <h1 className="text-3xl font-bold mb-4 text-gray-900 dark:text-gray-300">
+        {language === "zh" ? "多城市天氣比較" : "Compare Multiple Cities"}
+      </h1>
 
       <div className="flex gap-2">
         <input
           type="text"
-          className="p-2 border rounded"
-          placeholder="輸入城市名稱"
+          className="p-2 border rounded text-gray-900 dark:text-gray-200 bg-white dark:bg-gray-800 dark:border-gray-600"
+          placeholder={language === "zh" ? "輸入城市名稱" : "Enter city name"}
           value={inputCity}
           onChange={(e) => setInputCity(e.target.value)}
         />
-        <button onClick={addCity} className="bg-blue-500 text-white px-4 py-2 rounded">
-          ➕ 新增
+        <button
+          onClick={addCity}
+          className="bg-blue-500 dark:bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-600 dark:hover:bg-blue-700"
+        >
+          ➕ {language === "zh" ? "新增" : "Add"}
         </button>
       </div>
 
@@ -58,7 +65,7 @@ function Compare() {
             <WeatherCard weatherData={weatherData[city]} />
             <button
               onClick={() => removeCity(city)}
-              className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded"
+              className="absolute top-2 right-2 bg-red-500 dark:bg-red-600 text-white p-1 rounded hover:bg-red-600 dark:hover:bg-red-700"
             >
               ✖
             </button>
