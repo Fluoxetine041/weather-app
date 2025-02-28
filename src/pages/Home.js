@@ -1,10 +1,10 @@
-// Home.js - 負責首頁的天氣顯示
-import React, { useState, useEffect } from "react";
-import WeatherCard from "../components/WeatherCard"; // 確保正確引入
-import { getWeatherData } from "../services/weatherAPI"; // API 請求函式
+import React, { useContext, useEffect, useState } from "react";
+import { LocationContext } from "../context/LocationContext";
+import WeatherCard from "../components/WeatherCard";
+import { getWeatherData } from "../services/weatherAPI";
 
 function Home() {
-  const [location, setLocation] = useState("臺北市");
+  const { location } = useContext(LocationContext); // 讀取 `location`
   const [weatherData, setWeatherData] = useState(null);
   const [error, setError] = useState(null);
 
@@ -21,21 +21,12 @@ function Home() {
       }
     };
 
-    const debounceFetch = setTimeout(fetchData, 800);
-    return () => clearTimeout(debounceFetch);
-  }, [location]);
+    fetchData();
+  }, [location]); // 當 `location` 變更時，重新獲取天氣資訊
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
-      <h1 className="text-3xl font-bold mb-4">天氣預報</h1>
-
-      <input
-        type="text"
-        className="p-2 border rounded"
-        placeholder="輸入城市名稱"
-        value={location}
-        onChange={(e) => setLocation(e.target.value)}
-      />
+      <h1 className="text-3xl font-bold mb-4">天氣預報 - {location}</h1>
 
       {error ? <p className="text-red-500 mt-2">{error}</p> : <WeatherCard weatherData={weatherData} />}
     </div>
