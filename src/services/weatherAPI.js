@@ -1,3 +1,4 @@
+//weatherAPI.js（API 處理，負責與 OpenWeather API 交互）
 import axios from 'axios'; // 匯入 axios 用於發送 HTTP 請求
 
 // 設定 OpenWeather API Key
