@@ -36,7 +36,7 @@ function Home() {
   }, [location, language]); // 監聽 `location` 或 `language` 變更時重新獲取天氣
 
   return (
-    <div className="min-h-screen flex flex-col items-center bg-gray-100 dark:bg-[#121212]">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-900">
       {/* 頁面標題，根據語言切換 */}
       <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-300">
         {language === "zh" ? `天氣預報 - ${location}` : `Weather Forecast - ${location}`}
