@@ -56,46 +56,50 @@ function Header() {
         // 🔥 過濾符合輸入的城市名稱
         const filteredSuggestions = Object.keys(cityTranslations).filter((key) => {
             const { zh, en, aliases } = cityTranslations[key];
+            const inputLower = inputValue.toLowerCase();
+        
             return (
-                zh.includes(inputValue) || 
-                en.toLowerCase().includes(inputValue.toLowerCase()) || 
-                aliases.some(alias => alias.includes(inputValue))
+                zh.startsWith(inputValue) ||  // 🔥 中文開頭匹配
+                en.toLowerCase().startsWith(inputLower) || // 🔥 英文開頭匹配
+                aliases.some(alias => alias.startsWith(inputValue)) // 🔥 讓別名也支持建議
             );
-        });
+        });        
 
         setSuggestions(filteredSuggestions);
     };
 
     // 🔹 點擊建議選項
     const handleSuggestionClick = (city) => {
-        setLocation(city);
+        const displayCity = getCityName(city, language); // 🔥 根據當前語言轉換名稱
+        setLocation(displayCity);
         setSuggestions([]); // 選擇後清空建議
     };
 
-    // 🔹 處理 Enter 鍵事件（這裡才進行標準化）
-    const handleEnterPress = useCallback((e) => {
-        if (e.key === "Enter") {
-            e.preventDefault();
-            if (!location.trim()) return;
+// 🔹 處理 Enter 鍵事件（這裡才進行標準化）
+const handleEnterPress = useCallback((e) => {
+    if (e.key === "Enter") {
+        e.preventDefault();
+        if (!location.trim()) return;
 
-            const normalizedLocation = normalizeCityName(location); // 🔥 按下 Enter 時標準化
+        const normalizedLocation = normalizeCityName(location); // 🔥 按下 Enter 時標準化
 
-            setLocation(normalizedLocation);
-            saveSearchHistory(normalizedLocation);
+        setLocation(normalizedLocation);
+        saveSearchHistory(normalizedLocation);
 
-            if (routeLocation.pathname === "/compare") {
-                setCompareInput(normalizedLocation);
-                document.dispatchEvent(new CustomEvent("addCityFromHeader"));
-            }
+        // ✅ 讓 Compare 頁面監聽 Header 搜尋
+        if (routeLocation.pathname === "/compare") {
+            setCompareInput(normalizedLocation);
+            document.dispatchEvent(new CustomEvent("addCityFromHeader"));
         }
-    }, [location, saveSearchHistory, routeLocation.pathname, setCompareInput, setLocation]); // ✅ 加入 `setLocation`
+    }
+}, [location, saveSearchHistory, routeLocation.pathname, setCompareInput, setLocation]); // ✅ 加入 `setLocation`
 
-    useEffect(() => {
-        document.addEventListener("keydown", handleEnterPress);
-        return () => {
-            document.removeEventListener("keydown", handleEnterPress);
-        };
-    }, [handleEnterPress]);
+useEffect(() => {
+    document.addEventListener("keydown", handleEnterPress);
+    return () => {
+        document.removeEventListener("keydown", handleEnterPress);
+    };
+}, [handleEnterPress]);
 
     return (
         <header className="w-full p-4 bg-gray-900 text-gray-300 flex justify-between items-center dark:bg-[#121212]">
@@ -114,17 +118,6 @@ function Header() {
                     value={location}
                     onChange={handleInputChange} // 🔥 監聽輸入並顯示建議
                 />
-                <button
-                    onClick={() => {
-                        if (!location.trim()) return;
-                        const normalizedLocation = normalizeCityName(location);
-                        setLocation(normalizedLocation); // 🔥 只在按下搜尋時標準化
-                        saveSearchHistory(normalizedLocation);
-                    }}
-                    className="bg-yellow-500 px-4 py-2 rounded hover:bg-yellow-600"
-                >
-                    {language === "zh" ? "搜尋" : "Search"}
-                </button>
 
                 {/* 🔹 顯示建議選項 */}
                 {suggestions.length > 0 && (
@@ -176,7 +169,7 @@ function Header() {
                 </button>
 
                 <button className="bg-gray-700 text-white px-4 py-2 rounded" onClick={toggleLanguage}>
-                    {language === "zh" ? "🇹🇼 切換英文" : "🇬🇧 Switch to Chinese"}
+                    {language === "zh" ? "TW" : "EN"}
                 </button>
             </div>
         </header>

@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useContext } from "react";
 import WeatherCard from "../components/WeatherCard";
 import { getWeatherData } from "../services/weatherAPI";
-import { LanguageContext } from "../context/LanguageContext"; // 多語言 Context
-import { LocationContext } from "../context/LocationContext"; // 共享 compareInput
+import { LanguageContext } from "../context/LanguageContext";
+import { LocationContext } from "../context/LocationContext"; // 確保能接收 compareInput
 
 function Compare() {
-    const { language } = useContext(LanguageContext); // 取得語言設定
-    const { compareInput, setCompareInput } = useContext(LocationContext); // Header.js 搜尋框同步 Compare.js
-    const [cities, setCities] = useState(["臺北市"]); // 預設一個城市
+    const { language } = useContext(LanguageContext);
+    const { compareInput } = useContext(LocationContext); // 從 Header 取得 compareInput
+    const [cities, setCities] = useState(["臺北市"]); 
     const [weatherData, setWeatherData] = useState({});
 
     useEffect(() => {
@@ -23,15 +23,21 @@ function Compare() {
         };
 
         fetchWeather();
-    }, [cities]); // 當 cities 改變時，重新取得天氣資訊
+    }, [cities]); 
 
-    // 新增城市
-    const addCity = () => {
-        if (compareInput && !cities.includes(compareInput)) {
-            setCities([...cities, compareInput]);
-            setCompareInput(""); // 清空輸入框（同步 Header.js）
-        }
-    };
+    // 監聽 Header 觸發的新增事件
+    useEffect(() => {
+        const handleAddCity = () => {
+            if (compareInput && !cities.includes(compareInput)) {
+                setCities([...cities, compareInput]); // 加入新的城市
+            }
+        };
+
+        document.addEventListener("addCityFromHeader", handleAddCity);
+        return () => {
+            document.removeEventListener("addCityFromHeader", handleAddCity);
+        };
+    }, [compareInput, cities]); // 監聽 compareInput 變化
 
     // 移除城市
     const removeCity = (city) => {
@@ -43,23 +49,6 @@ function Compare() {
             <h1 className="text-3xl font-bold mb-4 text-gray-900 dark:text-gray-300">
                 {language === "zh" ? "多城市天氣比較" : "Compare Multiple Cities"}
             </h1>
-
-            {/* 🔥 Compare.js 輸入框與 Header.js 同步 */}
-            <div className="flex gap-2">
-                <input
-                    type="text"
-                    className="p-2 border rounded text-gray-900 dark:text-gray-200 bg-white dark:bg-gray-800 dark:border-gray-600"
-                    placeholder={language === "zh" ? "輸入城市名稱" : "Enter city name"}
-                    value={compareInput}
-                    onChange={(e) => setCompareInput(e.target.value)}
-                />
-                <button
-                    onClick={addCity}
-                    className="bg-blue-500 dark:bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-600 dark:hover:bg-blue-700"
-                >
-                    ➕ {language === "zh" ? "新增" : "Add"}
-                </button>
-            </div>
 
             {/* 城市天氣資訊 */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
