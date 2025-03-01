@@ -1,5 +1,5 @@
-// 🔥 修正：讓 cityTranslations 變成可以被導入的變數
 export const cityTranslations = {
+    // 城市名稱對應表，包含中文、英文名稱及常見別名
     "Keelung": { zh: "基隆市", en: "Keelung", aliases: ["基隆"] },
     "Taipei": { zh: "台北市", en: "Taipei", aliases: ["台北", "臺北"] },
     "Taoyuan": { zh: "桃園市", en: "Taoyuan", aliases: ["桃園"] },
@@ -20,24 +20,31 @@ export const cityTranslations = {
 
 /**
  * 標準化城市名稱，確保 API 能夠正確查詢
+ * 1. 去除前後空格
+ * 2. 將「臺」轉換為「台」
+ * 3. 去除「市」與「縣」
+ * 4. 若包含 "City"（忽略大小寫），則移除以確保匹配
  * @param {string} cityName - 用戶輸入的城市名稱
  * @returns {string} - 回傳標準化名稱（如「台北市」）
  */
 export function normalizeCityName(cityName) {
     if (!cityName) return cityName;
-
+    
     const cleanedName = cityName
-        .trim()
+        .trim() // 去除前後空格
+        .normalize("NFKC") // 正規化字串，防止隱藏空白字元
         .replace(/臺/g, "台") // 轉換「臺」為「台」
-        .replace(/縣|市/g, ""); // 去掉「市」與「縣」
-
+        .replace(/縣|市/g, "") // 去掉「市」與「縣」
+        .replace(/\s*(city|City)\s*$/i, ""); // ✅ 修正：移除 "City"，忽略大小寫並允許前後空格
+    
     for (const key in cityTranslations) {
         const { zh, aliases } = cityTranslations[key];
         if (zh.replace(/縣|市/g, "") === cleanedName || aliases.includes(cleanedName)) {
-            return zh; // 確保 API 傳遞的是標準中文名稱
+            return zh;
         }
     }
-    return cityName; // 如果找不到則回傳原始名稱
+    
+    return cleanedName;
 }
 
 /**
@@ -58,8 +65,7 @@ export function getCityName(city, language = "zh") {
             return language === "zh" ? cityTranslations[key].zh : cityTranslations[key].en;
         }
     }
-
-    return city; // 若找不到對應翻譯，則直接返回原始輸入的城市名稱
+    return city;
 }
 
 /**
@@ -69,7 +75,7 @@ export function getCityName(city, language = "zh") {
  */
 export function getCityEnglishName(city) {
     const normalizedCity = normalizeCityName(city);
-
+    
     for (const key in cityTranslations) {
         if (
             key.toLowerCase() === normalizedCity.toLowerCase() ||
@@ -79,8 +85,5 @@ export function getCityEnglishName(city) {
             return cityTranslations[key].en;
         }
     }
-
-    return city; // 若無對應則回傳原始名稱
+    return city;
 }
-
-// ✅ 這裡不再 `export default`，因為 `cityTranslations` 已經用 `export const` 了！

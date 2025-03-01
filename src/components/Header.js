@@ -2,26 +2,35 @@ import React, { useContext, useEffect, useState, useCallback } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { LocationContext } from "../context/LocationContext";
 import { LanguageContext } from "../context/LanguageContext";
-import { getCityName, normalizeCityName, cityTranslations } from "../utils/cityTranslations"; // 🔥 確保 cityTranslations 被導入
+import { getCityName, normalizeCityName, cityTranslations } from "../utils/cityTranslations";
 
 function Header() {
-    const { location, setLocation, setCompareInput } = useContext(LocationContext);
+    // 從 LocationContext 獲取 setLocation 和 setCompareInput，用於更新當前城市和比較輸入
+    const { setLocation, setCompareInput } = useContext(LocationContext);
+    // 從 LanguageContext 獲取當前語言和切換語言的函數
     const { language, toggleLanguage } = useContext(LanguageContext);
+    // 獲取當前路由位置
     const routeLocation = useLocation();
 
-    // 搜尋紀錄（最多 5 筆）
+    // 設定搜索歷史，從 localStorage 讀取，默認為空陣列
     const [searchHistory, setSearchHistory] = useState(() =>
         JSON.parse(localStorage.getItem("searchHistory")) || []
     );
-
-    // 搜尋建議清單
+    // 存儲搜索建議的狀態
     const [suggestions, setSuggestions] = useState([]);
-
-    // 讀取 LocalStorage 設定暗黑模式
+    // 控制建議下拉選單的顯示
+    const [showDropdown, setShowDropdown] = useState(false);
+    // 用於存儲當前輸入框的值
+    const [inputValue, setInputValue] = useState("");
+    // 控制響應式選單（手機版側邊欄）的開關狀態
+    const [menuOpen, setMenuOpen] = useState(false);
+    
+    // 記錄深色模式的狀態，從 localStorage 讀取
     const [darkMode, setDarkMode] = useState(() => {
         return localStorage.getItem("darkMode") === "true";
     });
 
+    // 監聽 darkMode 的變化，更新 localStorage 並切換 body 標籤的樣式
     useEffect(() => {
         localStorage.setItem("darkMode", darkMode);
         if (darkMode) {
@@ -31,102 +40,121 @@ function Header() {
         }
     }, [darkMode]);
 
-    // 更新搜尋紀錄
+    // 監聽 searchHistory 的變化，並將其儲存到 localStorage
+    useEffect(() => {
+        localStorage.setItem("searchHistory", JSON.stringify(searchHistory));
+    }, [searchHistory]);
+
+    // 保存搜尋歷史，最多保存 5 筆記錄，並確保不重複
     const saveSearchHistory = useCallback((city) => {
         if (!city.trim()) return;
-
-        const normalizedCity = normalizeCityName(city); // 🔥 只在搜尋時標準化
-
+        const normalizedCity = normalizeCityName(city);
         let history = JSON.parse(localStorage.getItem("searchHistory")) || [];
         history = [normalizedCity, ...history.filter(c => c !== normalizedCity)].slice(0, 5);
-        localStorage.setItem("searchHistory", JSON.stringify(history));
         setSearchHistory(history);
     }, []);
 
-    // 🔹 處理輸入框變更 & 提供建議選項
-    const handleInputChange = (e) => {
-        const inputValue = e.target.value;
-        setLocation(inputValue);
-
+    // 當輸入框獲得焦點時，顯示搜尋歷史作為建議
+    const handleInputFocus = () => {
         if (!inputValue.trim()) {
-            setSuggestions([]); // 若沒有輸入則清空建議
+            setSuggestions(searchHistory);
+            setShowDropdown(true);
+        }
+    };
+
+    // 處理輸入框的變化，根據輸入的內容篩選建議
+    const handleInputChange = (e) => {
+        const value = e.target.value;
+        setInputValue(value);
+        
+        if (!value.trim()) {
+            setSuggestions(searchHistory);
             return;
         }
 
-        // 🔥 過濾符合輸入的城市名稱
+        // 根據輸入內容匹配城市名稱（中文、英文、別名）
         const filteredSuggestions = Object.keys(cityTranslations).filter((key) => {
             const { zh, en, aliases } = cityTranslations[key];
-            const inputLower = inputValue.toLowerCase();
-        
+            const inputLower = value.toLowerCase();
             return (
-                zh.startsWith(inputValue) ||  // 🔥 中文開頭匹配
-                en.toLowerCase().startsWith(inputLower) || // 🔥 英文開頭匹配
-                aliases.some(alias => alias.startsWith(inputValue)) // 🔥 讓別名也支持建議
+                zh.startsWith(value) ||  
+                en.toLowerCase().startsWith(inputLower) ||
+                aliases.some(alias => alias.startsWith(value))
             );
-        });        
+        });
 
-        setSuggestions(filteredSuggestions);
+        setSuggestions([...new Set(filteredSuggestions)]);
+        setShowDropdown(true);
     };
 
-    // 🔹 點擊建議選項
-    const handleSuggestionClick = (city) => {
-        const displayCity = getCityName(city, language); // 🔥 根據當前語言轉換名稱
+    // 當使用者點擊建議時，設定當前城市並更新搜尋歷史
+    const handleSuggestionClick = useCallback((city) => {
+        const displayCity = getCityName(city, language);
         setLocation(displayCity);
-        setSuggestions([]); // 選擇後清空建議
-    };
+        saveSearchHistory(displayCity);
+        setSuggestions([]);
+        setShowDropdown(false);
+        setInputValue("");
 
-// 🔹 處理 Enter 鍵事件（這裡才進行標準化）
-const handleEnterPress = useCallback((e) => {
-    if (e.key === "Enter") {
-        e.preventDefault();
-        if (!location.trim()) return;
-
-        const normalizedLocation = normalizeCityName(location); // 🔥 按下 Enter 時標準化
-
-        setLocation(normalizedLocation);
-        saveSearchHistory(normalizedLocation);
-
-        // ✅ 讓 Compare 頁面監聽 Header 搜尋
+        // 如果當前路由為比較頁面，則更新比較輸入框
         if (routeLocation.pathname === "/compare") {
-            setCompareInput(normalizedLocation);
-            document.dispatchEvent(new CustomEvent("addCityFromHeader"));
+            setCompareInput(displayCity);
+            setTimeout(() => {
+                document.dispatchEvent(new CustomEvent("addCityFromHeader", { detail: displayCity }));
+            }, 0);
         }
-    }
-}, [location, saveSearchHistory, routeLocation.pathname, setCompareInput, setLocation]); // ✅ 加入 `setLocation`
+    }, [language, saveSearchHistory, routeLocation.pathname, setCompareInput, setLocation]);
 
-useEffect(() => {
-    document.addEventListener("keydown", handleEnterPress);
-    return () => {
-        document.removeEventListener("keydown", handleEnterPress);
-    };
-}, [handleEnterPress]);
+    // 監聽鍵盤事件，按下 Enter 鍵時自動選擇當前輸入的城市
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === "Enter" && inputValue.trim()) {
+                handleSuggestionClick(inputValue);
+            }
+        };
+        
+        document.addEventListener("keydown", handleKeyDown);
+        return () => {
+            document.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [inputValue, handleSuggestionClick]);
 
     return (
-        <header className="w-full p-4 bg-gray-900 text-gray-300 flex justify-between items-center dark:bg-[#121212]">
-            {/* 🔹 導航選單 */}
-            <nav className="flex gap-4">
+        <header className="w-full p-4 bg-gray-900 text-gray-300 flex justify-between items-center dark:bg-[#121212] relative">
+            {/* 響應式選單按鈕（僅在小屏幕顯示） */}
+            <div className="flex items-center lg:hidden">
+                <button className="bg-gray-700 text-white px-4 py-2 rounded" onClick={() => setMenuOpen(!menuOpen)}>
+                    ☰
+                </button>
+            </div>
+
+            {/* 導航選單（大屏幕顯示） */}
+            <nav className="hidden lg:flex gap-4 whitespace-nowrap overflow-hidden">
                 <Link to="/" className="hover:underline">{language === "zh" ? "主頁" : "Home"}</Link>
                 <Link to="/compare" className="hover:underline">{language === "zh" ? "常用城市" : "Saved Cities"}</Link>
                 <Link to="/forecast" className="hover:underline">{language === "zh" ? "五日預報" : "5-Day Forecast"}</Link>
             </nav>
 
+            {/* 搜索框 */}
             <div className="relative flex items-center gap-2">
                 <input
                     type="text"
-                    className="p-2 border rounded text-black dark:text-gray-300 dark:bg-gray-700 dark:border-gray-600"
+                    className="p-3 border rounded text-black dark:text-gray-300 dark:bg-gray-700 dark:border-gray-600 w-full md:w-[600px] lg:w-[900px] mx-auto"
                     placeholder={language === "zh" ? "輸入城市名稱..." : "Enter city name..."}
-                    value={location}
-                    onChange={handleInputChange} // 🔥 監聽輸入並顯示建議
+                    value={inputValue}
+                    onChange={handleInputChange}
+                    onFocus={handleInputFocus}
+                    onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
                 />
 
-                {/* 🔹 顯示建議選項 */}
-                {suggestions.length > 0 && (
-                    <ul className="absolute top-full left-0 w-full bg-white border border-gray-300 text-black z-10 rounded">
+                {/* 建議列表（動態顯示） */}
+                {showDropdown && suggestions.length > 0 && (
+                    <ul className="absolute top-full left-0 w-full bg-white border border-gray-300 text-black z-10 rounded shadow-lg">
                         {suggestions.map((city, index) => (
                             <li
                                 key={index}
                                 className="p-2 hover:bg-gray-200 cursor-pointer"
-                                onClick={() => handleSuggestionClick(city)}
+                                onMouseDown={() => handleSuggestionClick(city)}
                             >
                                 {getCityName(city, language)}
                             </li>
@@ -135,39 +163,11 @@ useEffect(() => {
                 )}
             </div>
 
-            {/* 🔹 最近搜尋紀錄（支援雙語 & 標準化處理） */}
-            {searchHistory.length > 0 && (
-                <div className="mt-3 text-center">
-                    <p className="text-sm">{language === "zh" ? "最近搜尋：" : "Recent Searches:"}</p>
-                    <ul className="flex gap-2">
-                        {searchHistory.map((city, index) => {
-                            const displayCity = getCityName(city, language); // 🔥 轉換為當前語言的城市名稱
-                            return (
-                                <li
-                                    key={index}
-                                    className="cursor-pointer text-yellow-300 underline"
-                                    onClick={() => {
-                                        setLocation(city);
-                                        if (routeLocation.pathname === "/compare") {
-                                            setCompareInput(city);
-                                            document.dispatchEvent(new CustomEvent("addCityFromHeader"));
-                                        }
-                                    }}
-                                >
-                                    {displayCity} {/* 🔥 確保顯示的是轉換後的名稱 */}
-                                </li>
-                            );
-                        })}
-                    </ul>
-                </div>
-            )}
-
-            {/* 🔹 設定功能 */}
+            {/* 深色模式切換 & 語言切換按鈕 */}
             <div className="flex gap-4">
                 <button className="bg-gray-700 text-white px-4 py-2 rounded" onClick={() => setDarkMode(!darkMode)}>
                     {darkMode ? "☀️" : "🌙"}
                 </button>
-
                 <button className="bg-gray-700 text-white px-4 py-2 rounded" onClick={toggleLanguage}>
                     {language === "zh" ? "TW" : "EN"}
                 </button>
