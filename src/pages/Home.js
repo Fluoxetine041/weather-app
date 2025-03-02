@@ -1,49 +1,60 @@
 import React, { useContext, useEffect, useState } from "react";
-import { LanguageContext } from "../context/LanguageContext"; // 語言 Context
-import { LocationContext } from "../context/LocationContext"; // 共享 `location`
-import WeatherCard from "../components/WeatherCard"; // 天氣卡片組件
-import { getWeatherData } from "../services/weatherAPI"; // API 請求函式
+import { LanguageContext } from "../context/LanguageContext"; 
+import { LocationContext } from "../context/LocationContext";
+import WeatherCard from "../components/WeatherCard";
+import { getWeatherData } from "../services/weatherAPI";
 
-/**
- * `Home` 組件負責顯示單一城市的天氣資訊，支援雙語
- * - `location` 來自 `LocationContext`（讓 `Header.js` 影響 `Home.js`）
- * - `language` 來自 `LanguageContext`（切換中 / 英文）
- * - 當 `location` 變更時，重新向 API 取得天氣資訊
- * - API 錯誤訊息支援多語系
- */
+// 1. 引入 cityTranslations.js 的函式
+import { getCityName, getCityEnglishName } from "../utils/cityTranslations";
+
 function Home() {
-  const { language } = useContext(LanguageContext); // 讀取目前語言設定
-  const { location } = useContext(LocationContext); // 讀取當前的城市名稱
-  const [weatherData, setWeatherData] = useState(null); // 儲存天氣數據
-  const [error, setError] = useState(null); // 儲存 API 錯誤訊息
+  const { language } = useContext(LanguageContext);
+  const { location } = useContext(LocationContext); // location 可能是使用者輸入或選擇的原始字串
+  const [weatherData, setWeatherData] = useState(null);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!location) return; // 如果沒有城市名稱，不發送請求
+    if (!location) return;
 
-    // 定義異步函式來獲取天氣數據
     const fetchData = async () => {
-      setError(null); // 清除舊錯誤訊息
+      setLoading(true);
+      setError(null);
 
-      const data = await getWeatherData(location); // 向 API 請求天氣數據
+      // 2. 取得「API 查詢用」的英文城市名稱
+      const cityForAPI = getCityEnglishName(location);
+
+      // 呼叫天氣 API
+      const data = await getWeatherData(cityForAPI);
       if (data) {
-        setWeatherData(data); // 更新狀態，儲存天氣數據
+        setWeatherData(data);
       } else {
-        setError(language === "zh" ? "無法取得天氣資訊，請檢查城市名稱是否正確" : "Unable to fetch weather data. Please check the city name.");
+        setError(
+          language === "zh"
+            ? "無法取得天氣資訊，請檢查城市名稱是否正確"
+            : "Unable to fetch weather data. Please check the city name."
+        );
       }
+      setLoading(false);
     };
 
-    fetchData(); // 執行 API 請求
-  }, [location, language]); // 監聽 `location` 或 `language` 變更時重新獲取天氣
+    fetchData();
+  }, [location, language]);
+
+  // 3. 取得「顯示用」的城市名稱（中/英文）
+  const cityForDisplay = getCityName(location, language);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-900">
-      {/* 頁面標題，根據語言切換 */}
       <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-300">
-        {language === "zh" ? `天氣預報 - ${location}` : `Weather Forecast - ${location}`}
+        {language === "zh"
+          ? `天氣預報 - ${cityForDisplay}`
+          : `Weather Forecast - ${cityForDisplay}`}
       </h1>
 
-      {/* 顯示錯誤訊息，否則顯示天氣資訊卡 */}
-      {error ? (
+      {loading ? (
+        <p className="mt-2">{language === "zh" ? "載入中..." : "Loading..."}</p>
+      ) : error ? (
         <p className="text-red-500 mt-2">{error}</p>
       ) : (
         <WeatherCard weatherData={weatherData} />

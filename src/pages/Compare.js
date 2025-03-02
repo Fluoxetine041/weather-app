@@ -7,7 +7,7 @@ import { LocationContext } from "../context/LocationContext"; // 確保能接收
 function Compare() {
     const { language } = useContext(LanguageContext);
     const { compareInput } = useContext(LocationContext); // 從 Header 取得 compareInput
-    const [cities, setCities] = useState(["臺北市"]); 
+    const [cities, setCities] = useState(["臺北市"]);
     const [weatherData, setWeatherData] = useState({});
 
     useEffect(() => {
@@ -23,7 +23,7 @@ function Compare() {
         };
 
         fetchWeather();
-    }, [cities]); 
+    }, [cities]);
 
     // 監聽 Header 觸發的新增事件
     useEffect(() => {
