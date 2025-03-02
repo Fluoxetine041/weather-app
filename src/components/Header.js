@@ -24,7 +24,7 @@ function Header() {
     const [inputValue, setInputValue] = useState("");
     // 控制響應式選單（手機版側邊欄）的開關狀態
     const [menuOpen, setMenuOpen] = useState(false);
-    
+
     // 記錄深色模式的狀態，從 localStorage 讀取
     const [darkMode, setDarkMode] = useState(() => {
         return localStorage.getItem("darkMode") === "true";
@@ -66,7 +66,7 @@ function Header() {
     const handleInputChange = (e) => {
         const value = e.target.value;
         setInputValue(value);
-        
+
         if (!value.trim()) {
             setSuggestions(searchHistory);
             return;
@@ -77,7 +77,7 @@ function Header() {
             const { zh, en, aliases } = cityTranslations[key];
             const inputLower = value.toLowerCase();
             return (
-                zh.startsWith(value) ||  
+                zh.startsWith(value) ||
                 en.toLowerCase().startsWith(inputLower) ||
                 aliases.some(alias => alias.startsWith(value))
             );
@@ -119,7 +119,7 @@ function Header() {
     }, [inputValue, handleSuggestionClick]);
 
     return (
-        <header className="w-full p-4 bg-gray-900 text-gray-300 flex justify-between items-center dark:bg-[#121212] relative">
+        <header className="w-full p-4 bg-gray-900 text-gray-300 flex justify-between items-center dark:bg-[#121212] sticky top-0 z-50">
             {/* 響應式選單按鈕（僅在小屏幕顯示） */}
             <div className="flex items-center lg:hidden">
                 <button className="bg-gray-700 text-white px-4 py-2 rounded" onClick={() => setMenuOpen(!menuOpen)}>
