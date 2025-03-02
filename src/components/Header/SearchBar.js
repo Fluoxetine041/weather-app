@@ -95,15 +95,15 @@ function SearchBar() {
   }, [inputValue, handleSuggestionClick]);
 
   return (
-    <div className="relative flex items-center gap-2">
+    // 使用 flex-1 讓搜尋欄自動撐滿可用空間
+    <div className="relative flex items-center gap-2 flex-1">
       <input
         type="text"
-        className="p-3 border rounded text-black dark:text-gray-300 dark:bg-gray-700 dark:border-gray-600 w-full md:w-[600px] lg:w-[750px] mx-auto"
+        className="p-3 border rounded text-black dark:text-gray-300 dark:bg-gray-700 dark:border-gray-600 w-full"
         placeholder={language === "zh" ? "輸入城市名稱..." : "Enter city name..."}
         value={inputValue}
         onChange={handleInputChange}
         onFocus={handleInputFocus}
-        // 利用 setTimeout 延遲關閉下拉選單，避免 onBlur 造成點擊失效
         onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
       />
       {showDropdown && suggestions.length > 0 && (
