@@ -22,9 +22,9 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, T
 function WindSpeedChart({ forecastData, language }) {
   if (!forecastData || !forecastData.list) return null;
 
-  // 取得未來 24 小時風速數據
-  const labels = forecastData.list.slice(0, 8).map((entry) => entry.dt_txt.split(" ")[1].slice(0, 5)); // 取 "HH:MM" 時間格式
-  const windSpeeds = forecastData.list.slice(0, 8).map((entry) => entry.wind.speed); // 取得風速 (m/s)
+  // 取得未來 24 小時風速數據 (前 8 筆，每 3 小時一筆 => 24 小時)
+  const labels = forecastData.list.slice(0, 8).map((entry) => entry.dt_txt.split(" ")[1].slice(0, 5)); 
+  const windSpeeds = forecastData.list.slice(0, 8).map((entry) => entry.wind.speed);
 
   const data = {
     labels,
@@ -42,6 +42,7 @@ function WindSpeedChart({ forecastData, language }) {
 
   const options = {
     responsive: true,
+    maintainAspectRatio: false, // 允許圖表在父容器自適應寬高
     plugins: {
       legend: { display: true },
       tooltip: { enabled: true },
@@ -63,7 +64,16 @@ function WindSpeedChart({ forecastData, language }) {
     },
   };
 
-  return <Line data={data} options={options} />;
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded shadow p-4 w-full h-64">
+      <h2 className="text-lg font-bold mb-2 text-gray-800 dark:text-gray-200">
+        {language === "zh" ? "風速折線圖" : "Wind Speed Chart"}
+      </h2>
+      <div className="w-full h-full">
+        <Line data={data} options={options} className="w-full h-full" />
+      </div>
+    </div>
+  );
 }
 
 export default WindSpeedChart;

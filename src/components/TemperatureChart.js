@@ -27,7 +27,6 @@ function TemperatureChart({ forecastData, language }) {
   forecastData.list.forEach((entry) => {
     const date = entry.dt_txt.split(" ")[0]; // 取得日期 (YYYY-MM-DD)
     const temp = entry.main.temp;
-
     if (!dailyData[date]) {
       dailyData[date] = { max: temp, min: temp };
     } else {
@@ -40,6 +39,7 @@ function TemperatureChart({ forecastData, language }) {
   const maxTemperatures = labels.map((date) => dailyData[date].max);
   const minTemperatures = labels.map((date) => dailyData[date].min);
 
+  // Chart.js Data
   const data = {
     labels,
     datasets: [
@@ -60,8 +60,10 @@ function TemperatureChart({ forecastData, language }) {
     ],
   };
 
+  // Chart.js Options
   const options = {
     responsive: true,
+    maintainAspectRatio: false, // 允許圖表在父容器自適應寬高
     plugins: {
       legend: { display: true },
       tooltip: { enabled: true },
@@ -83,7 +85,18 @@ function TemperatureChart({ forecastData, language }) {
     },
   };
 
-  return <Line data={data} options={options} />;
+  return (
+    // 外層容器：固定高度 h-64，寬度 w-full，讓圖表可自適應填滿
+    <div className="bg-white dark:bg-gray-800 rounded shadow p-4 w-full h-64">
+      <h2 className="text-lg font-bold mb-2 text-gray-800 dark:text-gray-200">
+        {language === "zh" ? "溫度折線圖" : "Temperature Chart"}
+      </h2>
+      {/* 圖表佔滿容器 */}
+      <div className="w-full h-full">
+        <Line data={data} options={options} className="w-full h-full" />
+      </div>
+    </div>
+  );
 }
 
 export default TemperatureChart;

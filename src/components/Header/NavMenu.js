@@ -29,7 +29,7 @@ function NavMenu() {
           {language === "zh" ? "常用城市" : "Saved Cities"}
         </Link>
         <Link to="/forecast" className="hover:underline">
-          {language === "zh" ? "五日預報" : "5-Day Forecast"}
+          {language === "zh" ? "天氣預報" : "Forecast Chart"}
         </Link>
       </nav>
 
@@ -43,7 +43,7 @@ function NavMenu() {
             {language === "zh" ? "常用城市" : "Saved Cities"}
           </Link>
           <Link to="/forecast" className="hover:underline" onClick={() => setMenuOpen(false)}>
-            {language === "zh" ? "五日預報" : "5-Day Forecast"}
+            {language === "zh" ? "天氣預報" : "Forecast Chart"}
           </Link>
         </nav>
       )}

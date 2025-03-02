@@ -26,7 +26,6 @@ function RainProbabilityChart({ forecastData, language }) {
   forecastData.list.forEach((entry) => {
     const date = entry.dt_txt.split(" ")[0]; // 取得日期 (YYYY-MM-DD)
     const pop = entry.pop || 0; // 降雨機率 (0~1)
-
     if (!dailyData[date]) {
       dailyData[date] = { popSum: pop, count: 1 };
     } else {
@@ -36,7 +35,9 @@ function RainProbabilityChart({ forecastData, language }) {
   });
 
   const labels = Object.keys(dailyData);
-  const rainProbabilities = labels.map((date) => (dailyData[date].popSum / dailyData[date].count) * 100); // 轉換為百分比 (%)
+  const rainProbabilities = labels.map(
+    (date) => (dailyData[date].popSum / dailyData[date].count) * 100 // 轉換為百分比
+  );
 
   const data = {
     labels,
@@ -53,6 +54,7 @@ function RainProbabilityChart({ forecastData, language }) {
 
   const options = {
     responsive: true,
+    maintainAspectRatio: false, // 允許圖表在父容器自適應寬高
     plugins: {
       legend: { display: true },
       tooltip: { enabled: true },
@@ -60,7 +62,7 @@ function RainProbabilityChart({ forecastData, language }) {
     scales: {
       y: {
         beginAtZero: true,
-        max: 100, // 降雨機率是百分比 (0~100)
+        max: 100,
         title: {
           display: true,
           text: language === "zh" ? "降雨機率 (%)" : "Rain Probability (%)",
@@ -75,7 +77,16 @@ function RainProbabilityChart({ forecastData, language }) {
     },
   };
 
-  return <Bar data={data} options={options} />;
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded shadow p-4 w-full h-64">
+      <h2 className="text-lg font-bold mb-2 text-gray-800 dark:text-gray-200">
+        {language === "zh" ? "降雨機率柱狀圖" : "Rain Probability Chart"}
+      </h2>
+      <div className="w-full h-full">
+        <Bar data={data} options={options} className="w-full h-full" />
+      </div>
+    </div>
+  );
 }
 
 export default RainProbabilityChart;
