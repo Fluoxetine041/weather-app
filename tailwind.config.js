@@ -1,15 +1,20 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  darkMode: "class", // ✅ 啟用 Tailwind 的深色模式（使用 .dark class 切換）
+  darkMode: "class",
   content: ["./src/**/*.{js,jsx,ts,tsx}"],
   theme: {
+    screens: {
+      // 320px 以上
+      sm: "320px",
+      // 768px 以上
+      md: "768px",
+      // 1024px 以上
+      lg: "1024px",
+      // 1440px 以上
+      xl: "1440px",
+    },
     extend: {
-      colors: {
-        darkBg: "#121212", // 深色模式的背景顏色
-        darkText: "#ffffff", // 深色模式的文字顏色
-        lightBg: "#f8f9fa", // 淺色模式的背景顏色
-        lightText: "#212529", // 淺色模式的文字顏色
-      },
+      // 你原先的其他設定...
     },
   },
   plugins: [],
