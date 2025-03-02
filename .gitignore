@@ -1,0 +1,33 @@
+# 參考: https://help.github.com/articles/ignoring-files/
+
+# 依賴 (Dependencies)
+node_modules/
+.pnp/
+.pnp.js
+
+# 測試 (Testing)
+coverage/
+
+# 產品環境 (Production)
+build/
+
+# 環境變數檔案 (Environment Variables)
+.env
+.env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
+
+# 系統檔案 (System Files)
+.DS_Store
+
+# npm / yarn 錯誤日誌
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 忽略 Lottie 動畫 JSON 檔案
+src/assets/animations/
