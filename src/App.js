@@ -6,7 +6,7 @@ import { LocationProvider } from "./context/LocationContext"; // 位置 Context
 import Home from "./pages/Home";
 import Forecast from "./pages/Forecast";
 import Compare from "./pages/Compare";
-import Header from "./components/Header";
+import Header from "./components/Header/Header";
 import Footer from "./components/Footer";
 
 /**
