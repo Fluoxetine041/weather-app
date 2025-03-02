@@ -112,7 +112,6 @@ function Header() {
                 handleSuggestionClick(inputValue);
             }
         };
-        
         document.addEventListener("keydown", handleKeyDown);
         return () => {
             document.removeEventListener("keydown", handleKeyDown);
@@ -139,7 +138,7 @@ function Header() {
             <div className="relative flex items-center gap-2">
                 <input
                     type="text"
-                    className="p-3 border rounded text-black dark:text-gray-300 dark:bg-gray-700 dark:border-gray-600 w-full md:w-[600px] lg:w-[900px] mx-auto"
+                    className="p-3 border rounded text-black dark:text-gray-300 dark:bg-gray-700 dark:border-gray-600 w-full md:w-[600px] lg:w-[750px] mx-auto"
                     placeholder={language === "zh" ? "輸入城市名稱..." : "Enter city name..."}
                     value={inputValue}
                     onChange={handleInputChange}

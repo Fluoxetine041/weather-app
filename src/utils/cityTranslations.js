@@ -29,21 +29,21 @@ export const cityTranslations = {
  */
 export function normalizeCityName(cityName) {
     if (!cityName) return cityName;
-    
+
     const cleanedName = cityName
-        .trim() // 去除前後空格
-        .normalize("NFKC") // 正規化字串，防止隱藏空白字元
-        .replace(/臺/g, "台") // 轉換「臺」為「台」
-        .replace(/縣|市/g, "") // 去掉「市」與「縣」
-        .replace(/\s*(city|City)\s*$/i, ""); // ✅ 修正：移除 "City"，忽略大小寫並允許前後空格
-    
+    .trim() // 去除前後空格
+    .normalize("NFKC") // 正規化字串，防止隱藏空白字元
+    .replace(/臺/g, "台") // 轉換「臺」為「台」
+    .replace(/縣|市/g, "") // 去掉「市」與「縣」
+    .replace(/\s*(city|county)\s*$/i, ""); // 移除 "City" 或 "County"，忽略大小寫並允許前後空格
+
     for (const key in cityTranslations) {
         const { zh, aliases } = cityTranslations[key];
         if (zh.replace(/縣|市/g, "") === cleanedName || aliases.includes(cleanedName)) {
             return zh;
         }
     }
-    
+
     return cleanedName;
 }
 
