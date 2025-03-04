@@ -1,8 +1,8 @@
-// App.js - 管理應用的全域結構
+// App.js
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { LanguageProvider } from "./context/LanguageContext"; // 語言 Context
-import { LocationProvider } from "./context/LocationContext"; // 位置 Context
+import { LanguageProvider } from "./context/LanguageContext";
+import { LocationProvider } from "./context/LocationContext";
 import Home from "./pages/Home";
 import Forecast from "./pages/Forecast";
 import Compare from "./pages/Compare";
@@ -10,16 +10,20 @@ import Header from "./components/Header/Header";
 import Footer from "./components/Footer";
 
 /**
- * `App` 組件負責應用的全域結構，包含：
- * - `LanguageProvider`（提供雙語支援）
- * - `LocationProvider`（管理 `location` 共享狀態）
- * - `Router`（管理前端路由，包含 `Home.js`、`Forecast.js`、`Compare.js`）
+ * App 組件:
+ * 1. 提供雙語與位置狀態 (LanguageProvider, LocationProvider)
+ * 2. 設定路由時使用 basename="/weather-app" 以對應 GitHub Pages 的子路徑
+ * 3. 在 main 分支開發後, 透過 npm run deploy 推送到 gh-pages 分支
  */
 function App() {
   return (
     <LanguageProvider>
       <LocationProvider>
-        <Router>
+        {/*
+          basename="/weather-app" 告訴 React Router
+          部署時實際路徑在 https://你的使用者名.github.io/weather-app
+        */}
+        <Router basename="/weather-app">
           <div className="min-h-screen flex flex-col bg-gray-100">
             <Header />
             <main className="flex-grow">
