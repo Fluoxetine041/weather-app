@@ -13,28 +13,26 @@ function Home() {
   const [loading, setLoading] = useState(false);
 
   /**
-   * 第一次進入頁面時，如果 location 為空，
-   * 就設定預設城市為「台北市」。同時將 location、setLocation
-   * 加入依賴陣列以解決 react-hooks/exhaustive-deps 警告。
+   * 為了解決初次進入頁面時無法取得天氣資料的問題：
+   * 1. 當 location 為 null 時，我們使用 "台北市" 作為預設查詢城市。
+   * 2. 同時透過 setLocation 將 context 裡的 location 設定為 "台北市"，以便其他頁面也能同步此設定。
+   * 3. 這樣即使第一次渲染時 location 還沒更新，也能立刻用預設值抓取天氣資料。
    */
   useEffect(() => {
+    // 若 location 尚未設定，使用預設值 "台北市"
+    const effectiveLocation = location || "台北市";
+
+    // 如果還沒設定，更新 context
     if (!location) {
       setLocation("台北市");
     }
-  }, [location, setLocation]);
-
-  /**
-   * 監聽 location & language，有改變時就向 API 取得天氣資料
-   */
-  useEffect(() => {
-    if (!location) return; // 若尚未設定 location，就不執行
 
     const fetchData = async () => {
       setLoading(true);
       setError(null);
 
-      // 取得「API 查詢用」的英文城市名稱
-      const cityForAPI = getCityEnglishName(location);
+      // 取得 API 查詢用的英文城市名稱
+      const cityForAPI = getCityEnglishName(effectiveLocation);
 
       try {
         const data = await getWeatherData(cityForAPI);
@@ -59,13 +57,10 @@ function Home() {
     };
 
     fetchData();
-  }, [location, language]);
+  }, [location, language, setLocation]);
 
-  /**
-   * 取得「顯示用」的城市名稱（中/英文）。
-   * 若 location 尚未有值，暫時顯示「台北市」。
-   */
-  const cityForDisplay = location ? getCityName(location, language) : "台北市";
+  // 若 location 還未設定，預設顯示「台北市」
+  const cityForDisplay = getCityName(location || "台北市", language);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-900">
